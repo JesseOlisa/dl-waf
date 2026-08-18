@@ -1,0 +1,17 @@
+{
+  "model": "modsecurity_crs",
+  "accuracy": 0.654913,
+  "precision": 0.669113,
+  "recall": 0.31516,
+  "f1_score": 0.428494,
+  "false_positive_rate": 0.108519,
+  "confusion_matrix": {
+    "tn": 4814,
+    "fp": 586,
+    "fn": 2575,
+    "tp": 1185
+  },
+  "n_samples": 9160,
+  "mean_latency_ms": 0.107,
+  "p95_latency_ms": 0.257
+}

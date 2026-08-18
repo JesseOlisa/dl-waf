@@ -1,0 +1,56 @@
+{
+  "lstm": {
+    "model": "lstm",
+    "accuracy": 0.994978,
+    "precision": 0.99679,
+    "recall": 0.990957,
+    "f1_score": 0.993865,
+    "false_positive_rate": 0.002222,
+    "confusion_matrix": {
+      "tn": 5388,
+      "fp": 12,
+      "fn": 34,
+      "tp": 3726
+    }
+  },
+  "cnn": {
+    "model": "cnn",
+    "accuracy": 0.992467,
+    "precision": 0.995969,
+    "recall": 0.985638,
+    "f1_score": 0.990777,
+    "false_positive_rate": 0.002778,
+    "confusion_matrix": {
+      "tn": 5385,
+      "fp": 15,
+      "fn": 54,
+      "tp": 3706
+    }
+  },
+  "latency": {
+    "lstm": {
+      "model": "lstm",
+      "n_samples": 1000,
+      "mean_ms": 79.198,
+      "median_ms": 78.116,
+      "p95_ms": 88.358,
+      "p99_ms": 94.88,
+      "min_ms": 69.462,
+      "max_ms": 102.502
+    },
+    "cnn": {
+      "model": "cnn",
+      "n_samples": 1000,
+      "mean_ms": 76.747,
+      "median_ms": 76.297,
+      "p95_ms": 82.766,
+      "p99_ms": 87.485,
+      "min_ms": 67.341,
+      "max_ms": 411.85
+    }
+  },
+  "selected_model": {
+    "name": "lstm",
+    "reason": "LSTM selected: combined score (F1 - FPR) = 0.9916 vs CNN = 0.9880"
+  }
+}

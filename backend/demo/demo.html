@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<!--
+  HOW TO RUN THE DEMO:
+  1. cd to project root  (dl-waf/)
+  2. uvicorn backend.main:app --reload --port 8000
+  3. Open browser : http://localhost:8000/demo
+  4. Open dashboard: http://localhost:3000
+  5. Place both windows side by side
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureBank Portal</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D1B2A;--card:#162032;--teal:#0F8B8D;--teal-lt:#14A3A5;
+  --text:#E8F4F8;--muted:#7EA8BE;--border:#1E3148;
+  --green-bg:#0B2218;--green:#22A360;--green-text:#5EE8A0;
+  --red-bg:#240D0D;--red:#C0392B;--red-text:#FF7070;
+  --mono-bg:#080F18;
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:2rem 1rem 3rem;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.hdr{text-align:center;margin-bottom:2rem}
+.logo{display:inline-flex;align-items:center;gap:.75rem;margin-bottom:.4rem}
+.logo-icon{
+  width:42px;height:42px;background:var(--teal);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.logo-name{font-size:1.8rem;font-weight:700;letter-spacing:-.02em}
+.logo-name em{color:var(--teal);font-style:normal}
+.tagline{color:var(--muted);font-size:.85rem}
+
+/* ── Card ────────────────────────────────────────────── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:2rem;width:100%;max-width:500px;margin-bottom:1.25rem;
+}
+.card-title{font-size:1.05rem;font-weight:600;margin-bottom:1.5rem}
+
+/* ── Form ────────────────────────────────────────────── */
+.fg{margin-bottom:1rem}
+label{
+  display:block;font-size:.75rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem;
+}
+input[type=text],input[type=password]{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;
+  padding:.6rem .85rem;color:var(--text);font-size:.95rem;outline:none;
+  font-family:inherit;transition:border-color .15s;
+}
+input:focus{border-color:var(--teal)}
+
+/* ── Quick-fill ──────────────────────────────────────── */
+.qfl{
+  font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.07em;margin:1.25rem 0 .5rem;
+}
+.qfrow{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.9rem}
+.btn-q{
+  padding:.35rem .85rem;border-radius:20px;border:1px solid;
+  font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+}
+.btn-q.n{border-color:var(--teal);color:var(--teal);background:transparent}
+.btn-q.n:hover,.btn-q.n.on{background:var(--teal);color:#fff}
+.btn-q.s{border-color:#E67E22;color:#E67E22;background:transparent}
+.btn-q.s:hover,.btn-q.s.on{background:#E67E22;color:#fff}
+.btn-q.x{border-color:#E74C3C;color:#E74C3C;background:transparent}
+.btn-q.x:hover,.btn-q.x.on{background:#E74C3C;color:#fff}
+
+/* ── Raw request preview ─────────────────────────────── */
+.raw-wrap{display:none;margin-bottom:1rem}
+.raw-label{
+  font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:.35rem;
+}
+pre.raw{
+  background:var(--mono-bg);border:1px solid var(--border);
+  border-left:3px solid var(--teal);border-radius:7px;
+  padding:.85rem 1rem;font-family:'Courier New',Consolas,monospace;
+  font-size:.8rem;line-height:1.65;color:#B0CCE0;
+  white-space:pre;overflow-x:auto;margin:0;
+}
+pre.raw .m{color:var(--teal-lt);font-weight:bold}
+pre.raw .k{color:#7EC8E3}
+pre.raw .v{color:#B8D4E0}
+pre.raw .b{color:#F0C674}
+
+/* ── Submit ──────────────────────────────────────────── */
+.btn-login{
+  width:100%;padding:.75rem;background:var(--teal);color:#fff;
+  border:none;border-radius:7px;font-size:.98rem;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:background .15s;margin-top:.25rem;
+}
+.btn-login:hover{background:var(--teal-lt)}
+.btn-login:disabled{opacity:.55;cursor:not-allowed}
+
+/* ── Result banner ───────────────────────────────────── */
+.banner{
+  display:none;border-radius:9px;padding:.9rem 1.1rem;
+  margin-top:1rem;border:1px solid;
+}
+.banner.ok{background:var(--green-bg);border-color:var(--green);color:var(--green-text)}
+.banner.bad{background:var(--red-bg);border-color:var(--red);color:var(--red-text)}
+.b-main{font-size:.98rem;font-weight:700;margin-bottom:.3rem}
+.b-meta{font-size:.8rem;opacity:.85;display:flex;gap:1.5rem;flex-wrap:wrap}
+
+/* ── Live log panel ──────────────────────────────────── */
+.log-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.25rem 1.5rem;width:100%;max-width:500px;margin-bottom:2rem;
+}
+.log-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.log-title{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.live{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--teal)}
+.dot{
+  width:7px;height:7px;background:var(--teal);border-radius:50%;
+  animation:blink 2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{
+  text-align:left;padding:.35rem .45rem;color:var(--muted);font-weight:600;
+  border-bottom:1px solid var(--border);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;
+}
+td{
+  padding:.45rem .45rem;border-bottom:1px solid rgba(30,49,72,.4);
+  vertical-align:middle;color:var(--muted);
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+tr.ok td.hi{color:var(--green-text)}
+tr.bad td.hi{color:var(--red-text)}
+.bdg{
+  display:inline-block;padding:.12rem .45rem;border-radius:10px;
+  font-size:.68rem;font-weight:700;
+}
+tr.ok .bdg{background:var(--green-bg);color:var(--green-text);border:1px solid var(--green)}
+tr.bad .bdg{background:var(--red-bg);color:var(--red-text);border:1px solid var(--red)}
+.empty{text-align:center;color:var(--muted);padding:1.25rem;font-size:.85rem}
+
+/* ── Footer ──────────────────────────────────────────── */
+footer{color:var(--muted);font-size:.72rem;opacity:.55;text-align:center}
+footer em{color:var(--teal);font-style:normal}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-icon">🏦</div>
+    <span class="logo-name">Secure<em>Bank</em> Portal</span>
+  </div>
+  <p class="tagline">Online Banking — Secure &amp; Reliable</p>
+</div>
+
+<div class="card">
+  <div class="card-title">Sign in to your account</div>
+
+  <div class="fg">
+    <label for="u">Username / Email</label>
+    <input type="text" id="u" placeholder="Enter your email address" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="fg">
+    <label for="p">Password</label>
+    <input type="password" id="p" placeholder="Enter your password">
+  </div>
+
+  <div class="qfl">Quick-fill demo payloads</div>
+  <div class="qfrow">
+    <button class="btn-q n" onclick="fill('n',this)">Normal Login</button>
+    <button class="btn-q s" onclick="fill('s',this)">SQL Injection</button>
+    <button class="btn-q x" onclick="fill('x',this)">XSS Attack</button>
+  </div>
+
+  <div class="raw-wrap" id="rawWrap">
+    <div class="raw-label">Raw HTTP request (what the WAF sees)</div>
+    <pre class="raw" id="rawPre"></pre>
+  </div>
+
+  <button class="btn-login" id="loginBtn" onclick="doLogin()">Login</button>
+
+  <div class="banner" id="banner">
+    <div class="b-main" id="bMain"></div>
+    <div class="b-meta" id="bMeta"></div>
+  </div>
+</div>
+
+<div class="log-card">
+  <div class="log-hdr">
+    <span class="log-title">Live Request Log</span>
+    <span class="live"><span class="dot"></span>Live</span>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Time</th><th>Input</th><th>Decision</th><th>Confidence</th></tr>
+    </thead>
+    <tbody id="logBody">
+      <tr><td colspan="4" class="empty">Waiting for requests…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>Protected by <em>SentinelWAF Deep Learning Engine</em> &nbsp;·&nbsp; AE-FUNAI MSc Thesis 2024</footer>
+
+<script>
+const P = {
+  n: { u: 'john.doe@bank.com',             p: 'MyPassword123' },
+  s: { u: "admin' OR '1'='1' --",          p: 'anything' },
+  x: { u: "<script>alert('XSS')<\/script>", p: 'test' },
+};
+
+function fill(type, btn) {
+  const {u, p} = P[type];
+  document.getElementById('u').value = u;
+  document.getElementById('p').value = p;
+  document.querySelectorAll('.btn-q').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  showRaw(u, p);
+  hideBanner();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showRaw(u, p) {
+  const body = 'username=' + encodeURIComponent(u) + '&password=' + encodeURIComponent(p);
+  const ua   = navigator.userAgent;
+  document.getElementById('rawPre').innerHTML =
+    '<span class="m">POST</span> /demo/login HTTP/1.1\n' +
+    '<span class="k">Host:</span>          <span class="v">localhost:8000</span>\n' +
+    '<span class="k">Content-Type:</span>  <span class="v">application/x-www-form-urlencoded</span>\n' +
+    '<span class="k">Content-Length:</span> <span class="v">' + body.length + '</span>\n' +
+    '<span class="k">User-Agent:</span>    <span class="v">' + esc(ua.slice(0,72)) + (ua.length>72?'…':'') + '</span>\n\n' +
+    '<span class="b">' + esc(body) + '</span>';
+  document.getElementById('rawWrap').style.display = 'block';
+}
+
+function hideBanner() { document.getElementById('banner').style.display = 'none'; }
+
+async function doLogin() {
+  const u = document.getElementById('u').value.trim();
+  const p = document.getElementById('p').value.trim();
+  if (!u) { alert('Please enter a username or select a demo payload.'); return; }
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Analysing…';
+  hideBanner();
+
+  try {
+    const fd = new URLSearchParams({username: u, password: p});
+    const t0 = performance.now();
+    const res = await fetch('/demo/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: fd.toString(),
+    });
+    const d = await res.json();
+
+    const ok = d.decision === 'ALLOW';
+    const banner = document.getElementById('banner');
+    banner.className = 'banner ' + (ok ? 'ok' : 'bad');
+    document.getElementById('bMain').textContent =
+      ok ? '✅  Access Granted — Welcome, John'
+         : '🚨  Request Blocked — ' + d.attack_type.replace(/_/g,' ') + ' Detected';
+    document.getElementById('bMeta').innerHTML =
+      '<span>🧠 Confidence: ' + (d.confidence * 100).toFixed(2) + '%</span>' +
+      '<span>⚡ Response: ' + d.response_time_ms + ' ms</span>';
+    banner.style.display = 'block';
+  } catch(e) {
+    alert('Could not reach backend. Is uvicorn running on port 8000?');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Login';
+  }
+}
+
+/* ── Live log ───────────────────────────────────────── */
+async function refreshLog() {
+  try {
+    const r = await fetch('/demo/status');
+    if (!r.ok) return;
+    const evs = await r.json();
+    if (!Array.isArray(evs) || evs.length === 0) return;
+    const rows = evs.slice(0, 5).map(ev => {
+      const cls  = ev.action_taken === 'ALLOWED' ? 'ok' : 'bad';
+      const time = (ev.timestamp || '').slice(11, 19) || '--';
+      const inp  = (ev.payload_fragment || '').slice(0, 30);
+      const conf = ((ev.confidence_score || 0) * 100).toFixed(1) + '%';
+      return '<tr class="' + cls + '">' +
+        '<td class="hi">' + esc(time) + '</td>' +
+        '<td class="hi" title="' + esc(ev.payload_fragment||'') + '">' + esc(inp) + (inp.length===30?'…':'') + '</td>' +
+        '<td><span class="bdg">' + esc(ev.action_taken||'--') + '</span></td>' +
+        '<td>' + conf + '</td>' +
+        '</tr>';
+    });
+    document.getElementById('logBody').innerHTML = rows.join('');
+  } catch(_) {}
+}
+
+refreshLog();
+setInterval(refreshLog, 3000);
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "lstm": {
+    "model": "lstm",
+    "n_samples": 1000,
+    "mean_ms": 79.198,
+    "median_ms": 78.116,
+    "p95_ms": 88.358,
+    "p99_ms": 94.88,
+    "min_ms": 69.462,
+    "max_ms": 102.502
+  },
+  "cnn": {
+    "model": "cnn",
+    "n_samples": 1000,
+    "mean_ms": 76.747,
+    "median_ms": 76.297,
+    "p95_ms": 82.766,
+    "p99_ms": 87.485,
+    "min_ms": 67.341,
+    "max_ms": 411.85
+  }
+}

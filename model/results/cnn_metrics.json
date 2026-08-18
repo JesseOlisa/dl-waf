@@ -1,0 +1,14 @@
+{
+  "model": "cnn",
+  "accuracy": 0.992467,
+  "precision": 0.995969,
+  "recall": 0.985638,
+  "f1_score": 0.990777,
+  "false_positive_rate": 0.002778,
+  "confusion_matrix": {
+    "tn": 5385,
+    "fp": 15,
+    "fn": 54,
+    "tp": 3706
+  }
+}

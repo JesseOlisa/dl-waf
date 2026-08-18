@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+venv/
+*.egg-info/
+
+# Environment / secrets
+.env
+!.env.example
+backend/.env
+!backend/.env.example
+
+# Runtime databases
+*.db
+*.db-wal
+*.db-shm
+
+# Dataset (large / regenerable via model/preprocess.py) — keep small metadata
+data/raw/*
+data/processed/*.npy
+data/processed/*.zip
+!data/processed/vocab.json
+!data/processed/class_weights.json
+!data/processed/dataset_stats.json
+
+# Node / Next.js (frontend has its own .gitignore too, kept as a safety net)
+node_modules/
+.next/
+out/
+.pnp.*
+*.tsbuildinfo
+.vercel
+
+# OS / editor cruft
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
