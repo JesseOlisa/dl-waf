@@ -1,0 +1,419 @@
+{
+  "experiment": "obfuscation_evasion_robustness",
+  "timestamp": "2026-09-23T05:04:11.218263+00:00",
+  "mode": "dlwaf",
+  "payloads_total": 17,
+  "summary": {
+    "layer1_model": {
+      "n_attacks": 14,
+      "attacks_caught": 12,
+      "legit_flags": 0,
+      "attack_rate": 0.8571
+    },
+    "layer2_signature": {
+      "n_attacks": 14,
+      "attacks_caught": 14,
+      "legit_flags": 0,
+      "attack_rate": 1.0
+    },
+    "layered": {
+      "n_attacks": 14,
+      "attacks_caught": 14,
+      "legit_flags": 0,
+      "attack_rate": 1.0
+    }
+  },
+  "payloads": [
+    {
+      "payload_id": "sqli_auth_bypass",
+      "category": "SQLi",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=admin' OR '1'='1' --",
+      "payload": "admin' OR '1'='1' --",
+      "technique": "plain auth bypass (control)",
+      "expected": 1,
+      "decoded_to": "admin' OR '1'='1' --",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999583
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "SQL Injection",
+        "pattern": "' OR '1"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 263.638,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "sqli_obfuscated_encoded",
+      "category": "SQLi",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=%27%2F%2A%2A%2FOR%2F%2A%2A%2F%271%27%3D%271%27--",
+      "payload": "%27%2F%2A%2A%2FOR%2F%2A%2A%2F%271%27%3D%271%27--",
+      "technique": "URL-encoded inline-comment auth bypass (simulation console scenario)",
+      "expected": 1,
+      "decoded_to": "'/**/OR/**/'1'='1'--",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 1.0
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "SQL Injection",
+        "pattern": "/*"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 101.293,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "sqli_comment_inline",
+      "category": "SQLi",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=admin'/**/OR/**/'1'='1'--",
+      "payload": "admin'/**/OR/**/'1'='1'--",
+      "technique": "inline-comment whitespace obfuscation",
+      "expected": 1,
+      "decoded_to": "admin'/**/OR/**/'1'='1'--",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 1.0
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "SQL Injection",
+        "pattern": "/*"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 101.708,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "sqli_double_encoded",
+      "category": "SQLi",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=admin%2527%2520OR%2520%25271%2527%253D%25271%2527%2520--",
+      "payload": "admin%2527%2520OR%2520%25271%2527%253D%25271%2527%2520--",
+      "technique": "double percent-encoding",
+      "expected": 1,
+      "decoded_to": "admin' OR '1'='1' --",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999999
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "SQL Injection",
+        "pattern": "' OR '1"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 101.599,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "sqli_tab_separators",
+      "category": "SQLi",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=admin'\tOR\t'1'='1'--",
+      "payload": "admin'\tOR\t'1'='1'--",
+      "technique": "tab/whitespace separator obfuscation",
+      "expected": 1,
+      "decoded_to": "admin'\tOR\t'1'='1'--",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999999
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "SQL Injection",
+        "pattern": "'\tOR\t'1"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 101.971,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "sqli_mixed_case",
+      "category": "SQLi",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=AdMiN' oR '1'='1' --",
+      "payload": "AdMiN' oR '1'='1' --",
+      "technique": "mixed-case keywords",
+      "expected": 1,
+      "decoded_to": "AdMiN' oR '1'='1' --",
+      "layer1_model": {
+        "label": 0,
+        "confidence": 0.00041
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "SQL Injection",
+        "pattern": "' oR '1"
+      },
+      "final_label": 1,
+      "blocked_by": "signature",
+      "latency_ms": 101.661,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "sqli_no_whitespace",
+      "category": "SQLi",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=0'UNION/**/SELECT/**/password/**/FROM/**/users--",
+      "payload": "0'UNION/**/SELECT/**/password/**/FROM/**/users--",
+      "technique": "no whitespace between SQL keywords (hard evasion)",
+      "expected": 1,
+      "decoded_to": "0'UNION/**/SELECT/**/password/**/FROM/**/users--",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 1.0
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "SQL Injection",
+        "pattern": "/*"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 101.693,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "xss_reflected",
+      "category": "XSS",
+      "method": "GET",
+      "uri": "/api/bank/search?q=<script>alert('XSS')</script>",
+      "payload": "<script>alert('XSS')</script>",
+      "technique": "plain reflected XSS (control)",
+      "expected": 1,
+      "decoded_to": "<script>alert('XSS')</script>",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999999
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "XSS",
+        "pattern": "<script"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 130.739,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "xss_svg_onload",
+      "category": "XSS",
+      "method": "GET",
+      "uri": "/api/bank/search?q=<svg/onload=alert(document.cookie)>",
+      "payload": "<svg/onload=alert(document.cookie)>",
+      "technique": "SVG onload filter evasion (simulation console scenario)",
+      "expected": 1,
+      "decoded_to": "<svg/onload=alert(document.cookie)>",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999999
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "XSS",
+        "pattern": "<svg"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 99.122,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "xss_img_onerror",
+      "category": "XSS",
+      "method": "POST",
+      "uri": "/api/bank/support",
+      "payload": "<img src=x onerror=alert(document.cookie)>",
+      "technique": "img onerror handler evasion",
+      "expected": 1,
+      "decoded_to": "<img src=x onerror=alert(document.cookie)>",
+      "layer1_model": {
+        "label": 0,
+        "confidence": 0.085713
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "XSS",
+        "pattern": "<img src"
+      },
+      "final_label": 1,
+      "blocked_by": "signature",
+      "latency_ms": 102.496,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "xss_nested_script",
+      "category": "XSS",
+      "method": "GET",
+      "uri": "/api/bank/search?q=<scr<script>ipt>alert(1)</scr</script>ipt>",
+      "payload": "<scr<script>ipt>alert(1)</scr</script>ipt>",
+      "technique": "nested-tag filter break",
+      "expected": 1,
+      "decoded_to": "<scr<script>ipt>alert(1)</scr</script>ipt>",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999999
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "XSS",
+        "pattern": "<script"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 100.586,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "xss_double_encoded",
+      "category": "XSS",
+      "method": "GET",
+      "uri": "/api/bank/search?q=%253Cscript%253Ealert%2528%2527XSS%2527%2529%253C%252Fscript%253E",
+      "payload": "%253Cscript%253Ealert%2528%2527XSS%2527%2529%253C%252Fscript%253E",
+      "technique": "double percent-encoded script tag",
+      "expected": 1,
+      "decoded_to": "<script>alert('XSS')</script>",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 1.0
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "XSS",
+        "pattern": "<script"
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 100.123,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "xss_hex_entities",
+      "category": "XSS",
+      "method": "GET",
+      "uri": "/api/bank/search?q=&#x3c;script&#x3e;alert(1)&#x3c;/script&#x3e;",
+      "payload": "&#x3c;script&#x3e;alert(1)&#x3c;/script&#x3e;",
+      "technique": "hex HTML-entity encoding (hard evasion, not URL-decoded)",
+      "expected": 1,
+      "decoded_to": "&#x3c;script&#x3e;alert(1)&#x3c;/script&#x3e;",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999999
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "XSS",
+        "pattern": "alert("
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 100.899,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "xss_javascript_uri",
+      "category": "XSS",
+      "method": "GET",
+      "uri": "/api/bank/search?q=<a href=jav&#x61;script:alert(1)>click</a>",
+      "payload": "<a href=jav&#x61;script:alert(1)>click</a>",
+      "technique": "entity-obfuscated javascript: URI",
+      "expected": 1,
+      "decoded_to": "<a href=jav&#x61;script:alert(1)>click</a>",
+      "layer1_model": {
+        "label": 1,
+        "confidence": 0.999999
+      },
+      "layer2_signature": {
+        "matched": true,
+        "category": "XSS",
+        "pattern": "alert("
+      },
+      "final_label": 1,
+      "blocked_by": "both",
+      "latency_ms": 102.128,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "legit_account_lookup",
+      "category": "Legitimate",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=0123456701",
+      "payload": "0123456701",
+      "technique": "normal account-number lookup",
+      "expected": 0,
+      "decoded_to": "0123456701",
+      "layer1_model": {
+        "label": 0,
+        "confidence": 1e-06
+      },
+      "layer2_signature": {
+        "matched": false,
+        "category": null,
+        "pattern": null
+      },
+      "final_label": 0,
+      "blocked_by": null,
+      "latency_ms": 100.561,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "legit_balance_query",
+      "category": "Legitimate",
+      "method": "GET",
+      "uri": "/api/bank/accounts?q=balance=5000",
+      "payload": "balance=5000",
+      "technique": "normal balance query",
+      "expected": 0,
+      "decoded_to": "balance=5000",
+      "layer1_model": {
+        "label": 0,
+        "confidence": 8e-06
+      },
+      "layer2_signature": {
+        "matched": false,
+        "category": null,
+        "pattern": null
+      },
+      "final_label": 0,
+      "blocked_by": null,
+      "latency_ms": 101.476,
+      "modsecurity": null
+    },
+    {
+      "payload_id": "legit_plain_search",
+      "category": "Legitimate",
+      "method": "GET",
+      "uri": "/api/bank/search?q=loan calculator status",
+      "payload": "loan calculator status",
+      "technique": "normal text search",
+      "expected": 0,
+      "decoded_to": "loan calculator status",
+      "layer1_model": {
+        "label": 0,
+        "confidence": 4e-06
+      },
+      "layer2_signature": {
+        "matched": false,
+        "category": null,
+        "pattern": null
+      },
+      "final_label": 0,
+      "blocked_by": null,
+      "latency_ms": 102.818,
+      "modsecurity": null
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "engine": "libmodsecurity (ModSecurity v3 C engine)",
+  "crs_version": "v3.3.9",
+  "rules_loaded": 877,
+  "config": "crs-setup + phase-2 deny (blocking enabled) | log-errors-home",
+  "accuracy": 0.723362,
+  "precision": 1.0,
+  "recall": 0.326064,
+  "f1_score": 0.491777,
+  "false_positive_rate": 0.0,
+  "confusion_matrix": {
+    "tn": 5400,
+    "fp": 0,
+    "fn": 2534,
+    "tp": 1226
+  },
+  "n_samples": 9160,
+  "mean_latency_ms": 0.72,
+  "p95_latency_ms": 1.524,
+  "p99_latency_ms": 1.711
+}

@@ -64,8 +64,11 @@ def build_test_split(df: pd.DataFrame):
 
 
 def extract_uri_path(url_field: str) -> str:
+    # CSIC's URL column is the raw request line incl. trailing " HTTP/1.1";
+    # strip it (as data/preprocess.py does) so the request line is well-formed.
     try:
-        return urlparse(url_field).path or "/"
+        cleaned = re.sub(r"\s+HTTP/\S+$", "", str(url_field).strip())
+        return urlparse(cleaned).path or "/"
     except Exception:
         return "/"
 
