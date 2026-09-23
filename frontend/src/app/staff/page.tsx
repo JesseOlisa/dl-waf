@@ -18,14 +18,10 @@ function ProtectionPill() {
         "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
         enabled
           ? "border-allow/40 bg-allow/10 text-allow"
-          : "border-block/50 bg-block/10 text-block"
+          : "border-block/50 bg-block/10 text-block",
       )}
     >
-      {enabled ? (
-        <ShieldCheck className="size-3.5" />
-      ) : (
-        <ShieldAlert className="size-3.5" />
-      )}
+      {enabled ? <ShieldCheck className="size-3.5" /> : <ShieldAlert className="size-3.5" />}
       {enabled ? "WAF protecting this workstation" : "WAF OFF — you are exposed"}
     </div>
   );
@@ -65,10 +61,9 @@ export default function StaffPage() {
             Do your daily tasks — safely, even when you slip.
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-sidebar-foreground/70">
-            You handle customers all day. Sometimes a &ldquo;customer&rdquo; or an email
-            tricks you into pasting something dangerous. For each task below, try the
-            normal action and the risky one, and watch how the deep-learning firewall
-            protects the bank — and you.
+            You handle customers all day. Sometimes a &ldquo;customer&rdquo; or an email tricks you
+            into pasting something dangerous. For each task below, try the normal action and the
+            risky one, and watch how the deep-learning firewall protects the bank — and you.
           </p>
         </div>
       </section>

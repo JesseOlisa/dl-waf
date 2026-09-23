@@ -166,6 +166,8 @@ export interface Consequence {
   cookie: string | null;
   defaced_html: string | null;
   detail: string | null;
+  detail_label: string | null;
+  severity: string | null; // "benign" for the legitimate baseline
 }
 
 export interface RunResult {

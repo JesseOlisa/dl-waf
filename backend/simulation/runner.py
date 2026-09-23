@@ -90,6 +90,14 @@ def run_scenario(
         outcome = "attack_blocked"
     elif is_legit:
         outcome = "legitimate_allowed"
+        # Run the same vulnerable sink with the clean payload, so the dashboard can
+        # show the legitimate query next to the injected one. Read-only by design.
+        try:
+            consequence = vulnerable_app.execute_op(
+                scenario["vuln_op"], _scenario_fields(scenario), benign=True
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            consequence = None
     else:
         # Attack got through — the WAF is off, or the engine missed it. Execute it.
         outcome = "attack_succeeded"

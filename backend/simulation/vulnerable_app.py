@@ -43,6 +43,7 @@ def vuln_login(username: str, password: str) -> dict:
             "none", "Login failed",
             summary="Credentials rejected — no matching user.",
             detail=sql,
+            detail_label="Executed query",
         )
     admin_hit = any(r["role"] == "admin" for r in rows)
     return _consequence(
@@ -56,14 +57,23 @@ def vuln_login(username: str, password: str) -> dict:
         columns=["username", "role"],
         rows=[[r["username"], r["role"]] for r in rows],
         detail=sql,
+        detail_label="Executed query",
     )
 
 
-def vuln_account_lookup(term: str) -> dict:
-    """Account search with interpolated SQL — UNION-injectable (SQLi L2 sink)."""
+def vuln_account_lookup(term: str, benign: bool = False) -> dict:
+    """
+    Account search with interpolated SQL — UNION-injectable (SQLi L2 sink).
+
+    ``benign=True`` is the legitimate baseline: the same vulnerable statement is
+    built and run, but the search term is an ordinary account number, so the
+    result is reported as a normal lookup rather than a breach. Running it keeps
+    the executed query visible for side-by-side comparison with the injected one.
+    """
     sql = (
-        "SELECT account_no, account_type, balance FROM accounts "
-        f"WHERE account_no LIKE '%{term}%'"
+        "SELECT a.account_no, a.account_type, c.bvn "
+        "FROM accounts a JOIN customers c ON c.id = a.customer_id "
+        f"WHERE a.account_no LIKE '%{term}%'"
     )
     conn = _connect()
     try:
@@ -72,16 +82,32 @@ def vuln_account_lookup(term: str) -> dict:
         rows = cur.fetchall()
     finally:
         conn.close()
+    if benign:
+        return _consequence(
+            "rows",
+            "Account search completed",
+            severity="benign",
+            summary=(
+                f"A normal staff lookup. The term stayed inside the quoted LIKE "
+                f"clause, so the query returned {len(rows)} matching account row(s)."
+            ),
+            columns=cols,
+            rows=[list(r) for r in rows],
+            detail=sql,
+            detail_label="Executed query",
+        )
     return _consequence(
         "rows",
         "Customer data exfiltrated",
         summary=(
-            f"UNION-based injection returned {len(rows)} row(s). The query was "
-            "meant to search accounts but now leaks the joined columns below."
+            f"UNION-based injection returned {len(rows)} row(s). The term broke out "
+            "of the LIKE clause and appended a UNION, so the query now returns every "
+            "customer's name, email and BVN instead of one account."
         ),
         columns=cols,
         rows=[list(r) for r in rows],
         detail=sql,
+        detail_label="Executed query",
     )
 
 
@@ -172,6 +198,7 @@ def vuln_destructive(payload: str) -> dict:
             ["Transactions table", "intact", tx_note],
         ],
         detail=script,
+        detail_label="Executed statements",
     )
 
 
@@ -193,6 +220,7 @@ def vuln_reflect(term: str) -> dict:
         ),
         defaced_html=page,
         detail=term,
+        detail_label="Injected markup",
     )
 
 
@@ -241,6 +269,7 @@ def vuln_transfer(source_account: str, beneficiary: str, amount: str) -> dict:
             columns=["Attacker account", "Holder", "Balance before", "Balance after"],
             rows=[[atk, "Kelvin Malore", f"₦{atk_before:,.2f}", f"₦{atk_after:,.2f}"]],
             detail=script,
+            detail_label="Executed statements",
         )
     return _consequence(
         "none",
@@ -289,16 +318,29 @@ def vuln_store_and_view(author: str, body: str) -> dict:
         ),
         cookie=f"session={token}",
         detail=body,
+        detail_label="Stored payload",
     )
 
 
-def execute_op(op_name: str, fields: dict) -> dict:
+def execute_op(op_name: str, fields: dict, benign: bool = False) -> dict:
     """
     Run the vulnerable op for a scenario. `fields` is the form's fields; values
     are URL-decoded first (GET payloads arrive percent-encoded on the wire, but
     the application decodes them before use — where the real vulnerability bites).
+
+    `benign` marks the legitimate baseline, whose payload carries no injection;
+    only read-only ops are dispatched in that mode.
     """
     f = {k: unquote(str(v)) for k, v in fields.items()}
+
+    if benign:
+        # Never run a mutating sink for a request we classified as legitimate.
+        if op_name == "vuln_account_lookup":
+            return vuln_account_lookup(f.get("q", ""), benign=True)
+        return _consequence(
+            "none", "Request served",
+            summary="Legitimate request — handled normally.",
+        )
 
     if op_name == "vuln_login":
         username = f.get("username") or next(iter(f.values()), "")

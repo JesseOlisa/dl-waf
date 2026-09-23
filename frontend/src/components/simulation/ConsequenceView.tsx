@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldAlert, KeyRound } from "lucide-react";
+import { ShieldAlert, ShieldCheck, KeyRound } from "lucide-react";
 import type { Consequence } from "@/lib/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -15,14 +15,19 @@ import {
 export function ConsequenceView({ c }: { c: Consequence }) {
   if (c.kind === "none") {
     return (
-      <p className="text-sm text-muted-foreground">{c.summary ?? "No effect."}</p>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted-foreground">{c.summary ?? "No effect."}</p>
+        <DetailBlock c={c} />
+      </div>
     );
   }
 
+  const benign = c.severity === "benign";
+
   return (
     <div className="flex flex-col gap-3">
-      <Alert variant="destructive">
-        <ShieldAlert />
+      <Alert variant={benign ? "default" : "destructive"}>
+        {benign ? <ShieldCheck /> : <ShieldAlert />}
         <AlertTitle>{c.title}</AlertTitle>
         {c.summary && <AlertDescription>{c.summary}</AlertDescription>}
       </Alert>
@@ -66,6 +71,8 @@ export function ConsequenceView({ c }: { c: Consequence }) {
         </div>
       )}
 
+      {c.kind !== "boolean_leak" && <DetailBlock c={c} />}
+
       {c.kind === "defacement" && c.defaced_html && (
         <div className="flex flex-col gap-1.5">
           <span className="text-xs text-muted-foreground">
@@ -80,6 +87,21 @@ export function ConsequenceView({ c }: { c: Consequence }) {
           />
         </div>
       )}
+    </div>
+  );
+}
+
+/** Renders the exact statement the vulnerable app executed, when there is one. */
+function DetailBlock({ c }: { c: Consequence }) {
+  if (!c.detail) return null;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium text-muted-foreground">
+        {c.detail_label ?? "Executed query"}
+      </span>
+      <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-all">
+        {c.detail}
+      </pre>
     </div>
   );
 }
